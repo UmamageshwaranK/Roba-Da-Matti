@@ -1189,7 +1189,13 @@ stage.addEventListener('drop',function(e){e.preventDefault();stage.classList.rem
 function flat(p){var c=mk(p.w,p.h),x=c.getContext('2d');var h=hidden;hidden=null;paint(x,p,false);hidden=h;return c}
 function toBlob(c,type,q){return new Promise(function(res){c.toBlob(res,type,q)})}
 async function save(filename,data){
-  if(!dl){toast('Saving is not available in this view. Open the page in claude.ai to save files.');return false}
+  if(!dl){
+    try{
+      var bl=data instanceof Blob?data:new Blob([data]),u=URL.createObjectURL(bl),a=document.createElement('a');
+      a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(u)},4000);return true;
+    }catch(err){toast('Could not save: '+(err.message||'unknown error'));return false}
+  }
   try{await dl.save({filename:filename,data:data});return true}
   catch(err){if(err&&err.code!=='declined')toast('Could not save: '+(err.message||'unknown error'));return false}
 }
